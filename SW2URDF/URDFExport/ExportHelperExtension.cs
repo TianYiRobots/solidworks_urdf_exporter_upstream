@@ -243,11 +243,11 @@ namespace SW2URDF.URDFExport
         private class LeafMass
         {
             public double Mass;
-            public double[] ComPart;          // center of mass, in part frame (meters)
-            public Matrix<double> JPart;      // inertia 3x3 about COM, part axes (kg*m^2)
-            public Matrix<double> World;      // 4x4 part-frame -> top-assembly transform
-            public Vector<double> ComWorld;   // COM in assembly (world) space
-            public Matrix<double> RotWorld;   // 3x3 world rotation of this part
+            public double[] CenterOfMassPartFrame;
+            public Matrix<double> InertiaAboutComPartFrame;
+            public Matrix<double> PartToAssemblyTransform;
+            public Vector<double> CenterOfMassAssemblyFrame;
+            public Matrix<double> AssemblyRotation;
         }
 
         // Recursively collects leaf components (parts) under a link's top-level components,
@@ -331,13 +331,13 @@ namespace SW2URDF.URDFExport
             foreach (LeafMass leaf in leaves)
             {
                 Vector<double> cPart = DenseVector.OfArray(
-                    new double[] { leaf.ComPart[0], leaf.ComPart[1], leaf.ComPart[2], 1.0 });
-                Vector<double> cWorld = leaf.World * cPart;
-                leaf.ComWorld = cWorld.SubVector(0, 3);
-                leaf.RotWorld = leaf.World.SubMatrix(0, 3, 0, 3);
+                    new double[] { leaf.CenterOfMassPartFrame[0], leaf.CenterOfMassPartFrame[1], leaf.CenterOfMassPartFrame[2], 1.0 });
+                Vector<double> cWorld = leaf.PartToAssemblyTransform * cPart;
+                leaf.CenterOfMassAssemblyFrame = cWorld.SubVector(0, 3);
+                leaf.AssemblyRotation = leaf.PartToAssemblyTransform.SubMatrix(0, 3, 0, 3);
 
                 totalMass += leaf.Mass;
-                comWorld += leaf.Mass * leaf.ComWorld;
+                comWorld += leaf.Mass * leaf.CenterOfMassAssemblyFrame;
             }
             comWorld = comWorld / totalMass;
 
@@ -346,10 +346,10 @@ namespace SW2URDF.URDFExport
             foreach (LeafMass leaf in leaves)
             {
                 // Rotate this part's tensor into world axes.
-                Matrix<double> JPartRotated = leaf.RotWorld * leaf.JPart * leaf.RotWorld.Transpose();
+                Matrix<double> JPartRotated = leaf.AssemblyRotation * leaf.InertiaAboutComPartFrame * leaf.AssemblyRotation.Transpose();
 
                 // Shift from this part's COM to the combined COM: m*(|d|^2 I - d d^T).
-                Vector<double> d = leaf.ComWorld - comWorld;
+                Vector<double> d = leaf.CenterOfMassAssemblyFrame - comWorld;
                 double d2 = d.DotProduct(d);
                 Matrix<double> ddT = d.OuterProduct(d);
 

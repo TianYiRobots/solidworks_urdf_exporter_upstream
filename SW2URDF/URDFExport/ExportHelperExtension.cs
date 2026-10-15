@@ -266,15 +266,11 @@ namespace SW2URDF.URDFExport
                 try
                 {
                     ModelDoc2 partDoc = comp.GetModelDoc2();
-                    if (partDoc == null)
-                    {
-                        // Lightweight / not loaded component; cannot read mass properties.
-                        continue;
-                    }
                     mp = partDoc.Extension.CreateMassProperty();
                 }
-                catch
+                catch (Exception ex)
                 {
+                    logger.Warn("Failed to read mass properties for '" + comp.Name2 + "': " + ex.Message);
                     continue;
                 }
 

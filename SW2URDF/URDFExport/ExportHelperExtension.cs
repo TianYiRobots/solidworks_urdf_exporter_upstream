@@ -620,7 +620,24 @@ namespace SW2URDF.URDFExport
                 ParentJointGlobalTransform.Inverse() * ChildJointGlobalTransform;
             
             //Localize the axis to the Link's coordinate system.
-            Joint.Axis.SetXYZ(LocalizeAxis(Joint.Axis.GetXYZ(), Joint.CoordinateSystemName));
+            double[] localizedAxis = LocalizeAxis(Joint.Axis.GetXYZ(), Joint.CoordinateSystemName);
+
+            // Prefer positive direction in the joint frame: flip so the first non-zero
+            // component is positive. This turns e.g. [0,-1,0] into [0,1,0].
+            for (int i = 0; i < 3; i++)
+            {
+                if (Math.Abs(localizedAxis[i]) > 1e-6)
+                {
+                    if (localizedAxis[i] < 0)
+                    {
+                        localizedAxis[0] = -localizedAxis[0];
+                        localizedAxis[1] = -localizedAxis[1];
+                        localizedAxis[2] = -localizedAxis[2];
+                    }
+                    break;
+                }
+            }
+            Joint.Axis.SetXYZ(localizedAxis);
 
             // Get the array values and threshold them so small values are set to 0.
             Joint.Origin.SetXYZ(MathOps.GetXYZ(ChildJointOrigin));
@@ -1060,6 +1077,23 @@ namespace SW2URDF.URDFExport
 
                 // Transform to proper coordinates
                 axisVector = GlobalAxis(axisVector, ComponentTransform);
+
+                // Prefer a positive direction: flip the whole vector so that its first
+                // non-zero component is positive. This turns [-1,0,0]/[0,-1,0]/[0,0,-1]
+                // into [1,0,0]/[0,1,0]/[0,0,1].
+                for (int i = 0; i < 3; i++)
+                {
+                    if (Math.Abs(axisVector[i]) > 1e-6)
+                    {
+                        if (axisVector[i] < 0)
+                        {
+                            axisVector[0] = -axisVector[0];
+                            axisVector[1] = -axisVector[1];
+                            axisVector[2] = -axisVector[2];
+                        }
+                        break;
+                    }
+                }
             }
 
             return axisVector;

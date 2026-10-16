@@ -291,23 +291,25 @@ namespace SW2URDF.Utilities
             return result;
         }
 
-        // Flips the axis vector in place so that its first non-zero component is positive.
+        // Returns a copy of the axis vector with the first non-zero component positive.
         // This turns [-1,0,0]/[0,-1,0]/[0,0,-1] into [1,0,0]/[0,1,0]/[0,0,1].
-        public static void NormalizeAxisPositiveDirection(double[] axis, double tolerance = 1e-6)
+        public static double[] NormalizeAxisPositiveDirection(double[] axis, double tolerance = 1e-6)
         {
+            double[] result = (double[])axis.Clone();
             for (int i = 0; i < 3; i++)
             {
-                if (Math.Abs(axis[i]) > tolerance)
+                if (Math.Abs(result[i]) > tolerance)
                 {
-                    if (axis[i] < 0)
+                    if (result[i] < 0)
                     {
-                        axis[0] = -axis[0];
-                        axis[1] = -axis[1];
-                        axis[2] = -axis[2];
+                        result[0] = -result[0];
+                        result[1] = -result[1];
+                        result[2] = -result[2];
                     }
                     break;
                 }
             }
+            return result;
         }
     }
 }

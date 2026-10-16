@@ -622,7 +622,7 @@ namespace SW2URDF.URDFExport
             //Localize the axis to the Link's coordinate system.
             double[] localizedAxis = LocalizeAxis(Joint.Axis.GetXYZ(), Joint.CoordinateSystemName);
 
-            MathOps.NormalizeAxisPositiveDirection(localizedAxis);
+            localizedAxis = MathOps.NormalizeAxisPositiveDirection(localizedAxis);
             Joint.Axis.SetXYZ(localizedAxis);
 
             // Get the array values and threshold them so small values are set to 0.
@@ -1064,7 +1064,7 @@ namespace SW2URDF.URDFExport
                 // Transform to proper coordinates
                 axisVector = GlobalAxis(axisVector, ComponentTransform);
 
-                MathOps.NormalizeAxisPositiveDirection(axisVector);
+                axisVector = MathOps.NormalizeAxisPositiveDirection(axisVector);
             }
 
             return axisVector;

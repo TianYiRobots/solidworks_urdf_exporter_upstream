@@ -279,14 +279,8 @@ namespace SW2URDF.URDFExport
                 double[] moment = mp.GetMomentOfInertia(
                     (int)swMomentsOfInertiaReferenceFrame_e.swMomentsOfInertiaReferenceFrame_CenterOfMass);
 
-                // Symmetric 3x3 matrix, row-major from [Lxx,Lxy,Lxz,Lyx,Lyy,Lyz,Lzx,Lzy,Lzz].
                 // SolidWorks negative-tensor convention == URDF convention (no sign flip).
-                Matrix<double> J = DenseMatrix.OfArray(new double[,]
-                {
-                    { moment[0], moment[1], moment[2] },
-                    { moment[3], moment[4], moment[5] },
-                    { moment[6], moment[7], moment[8] }
-                });
+                Matrix<double> J = MathOps.InertiaMomentToMatrix(moment);
 
                 sink.Add(new LeafMass
                 {

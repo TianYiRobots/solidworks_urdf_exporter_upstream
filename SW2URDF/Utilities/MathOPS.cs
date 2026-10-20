@@ -296,20 +296,28 @@ namespace SW2URDF.Utilities
         public static double[] NormalizeAxisPositiveDirection(double[] axis, double tolerance = 1e-6)
         {
             double[] result = (double[])axis.Clone();
-            for (int i = 0; i < 3; i++)
+            if (ShouldFlipSign(result, tolerance))
             {
-                if (Math.Abs(result[i]) > tolerance)
+                for (int i = 0; i < result.Length; i++)
                 {
-                    if (result[i] < 0)
-                    {
-                        result[0] = -result[0];
-                        result[1] = -result[1];
-                        result[2] = -result[2];
-                    }
-                    break;
+                    result[i] = -result[i];
                 }
             }
             return result;
+        }
+
+        // Returns true if the first non-zero component of the vector is negative,
+        // meaning the whole vector should be flipped to prefer a positive direction.
+        private static bool ShouldFlipSign(double[] vector, double tolerance)
+        {
+            for (int i = 0; i < vector.Length; i++)
+            {
+                if (Math.Abs(vector[i]) > tolerance)
+                {
+                    return vector[i] < 0;
+                }
+            }
+            return false;
         }
     }
 }
